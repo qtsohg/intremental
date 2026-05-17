@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Von Neumann Swarm — SPEC</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --ink:        #1c1e22;
+    --ink-soft:   #4a4d54;
+    --rule:       #d8d4cc;
+    --paper:      #fbf9f4;
+    --paper-2:    #f3efe6;
+    --accent:     #2b4f7a;
+    --accent-2:   #8a3c2a;
+    --note-bg:    #fff7e0;
+    --note-edge:  #d4a72c;
+    --blank-bg:   #f5f1e6;
+    --blank-edge: #c4bba6;
+    --mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", "Source Serif Pro", Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  html { background: var(--paper-2); }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--paper);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  header.doc-header {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 48px 32px 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  header.doc-header h1 {
+    font-family: var(--sans);
+    font-size: 32px;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  header.doc-header .meta {
+    font-family: var(--sans);
+    color: var(--ink-soft);
+    font-size: 13px;
+    margin: 0;
+  }
+  header.doc-header .preamble {
+    margin-top: 18px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    max-width: 720px;
+  }
+  header.doc-header .preamble code {
+    background: var(--paper-2);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+
+  nav.toc {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--rule);
+    font-family: var(--sans);
+    font-size: 13px;
+  }
+  nav.toc ol {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 18px;
+  }
+  nav.toc li { color: var(--ink-soft); }
+  nav.toc a { color: var(--accent); text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+
+  main {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 0 32px 96px;
+  }
+
+  section {
+    display: grid;
+    grid-template-columns: minmax(0, 720px) 280px;
+    column-gap: 40px;
+    padding: 36px 0 24px;
+    border-bottom: 1px solid var(--rule);
+  }
+  section > .content { grid-column: 1; min-width: 0; }
+  section > .margin { grid-column: 2; }
+
+  @media (max-width: 980px) {
+    section { grid-template-columns: 1fr; }
+    section > .margin { margin-top: 12px; }
+  }
+
+  h2 {
+    font-family: var(--sans);
+    font-size: 22px;
+    letter-spacing: -0.005em;
+    margin: 0 0 4px;
+  }
+  h2 .num {
+    display: inline-block;
+    width: 1.8em;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+    margin: 28px 0 8px;
+  }
+  .lede {
+    font-family: var(--sans);
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin: 0 0 18px;
+  }
+  p { margin: 0 0 12px; }
+
+  ul, ol { padding-left: 22px; margin: 0 0 12px; }
+  li { margin-bottom: 4px; }
+
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+  }
+  pre {
+    background: var(--paper-2);
+    border-left: 3px solid var(--accent);
+    padding: 14px 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-x: auto;
+    border-radius: 0 4px 4px 0;
+    margin: 12px 0 16px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: 13px;
+    margin: 8px 0 16px;
+  }
+  th, td {
+    text-align: left;
+    vertical-align: top;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--rule);
+  }
+  th {
+    font-weight: 600;
+    background: var(--paper-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  td.date { white-space: nowrap; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+  td.why { color: var(--ink-soft); }
+
+  .mermaid {
+    background: var(--paper-2);
+    padding: 16px;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    margin: 12px 0 16px;
+    text-align: center;
+  }
+
+  .stub {
+    background: repeating-linear-gradient(
+      135deg,
+      var(--paper-2),
+      var(--paper-2) 10px,
+      transparent 10px,
+      transparent 20px
+    );
+    border: 1px dashed var(--rule);
+    color: var(--ink-soft);
+    padding: 10px 14px;
+    font-family: var(--sans);
+    font-size: 13px;
+    border-radius: 4px;
+    margin: 8px 0 12px;
+  }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--sans);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+  .tag.v1   { background: #d6e7d4; color: #3a5e34; }
+  .tag.v2   { background: #f0d8c4; color: #7a4824; }
+  .tag.open { background: #e8d4ee; color: #5e2b75; }
+  .tag.risk { background: #f0c8c8; color: #7a2828; }
+
+  aside.margin-note,
+  aside.margin-note-blank {
+    font-family: var(--sans);
+    font-size: 12px;
+    line-height: 1.45;
+    padding: 8px 11px;
+    border-radius: 3px;
+    margin-bottom: 10px;
+  }
+  aside.margin-note {
+    background: var(--note-bg);
+    border-left: 3px solid var(--note-edge);
+    color: var(--ink);
+  }
+  aside.margin-note .who {
+    font-weight: 600;
+    color: var(--note-edge);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    display: block;
+    margin-bottom: 4px;
+  }
+  aside.margin-note-blank {
+    background: var(--blank-bg);
+    border: 1px dashed var(--blank-edge);
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  aside.margin-note-blank::before {
+    content: "✎ ";
+    font-style: normal;
+  }
+</style>
+</head>
+<body>
+
+<header class="doc-header">
+  <h1>Von Neumann Swarm — SPEC</h1>
+  <p class="meta">Living spec · v0.1 scaffold · Last updated 2026-05-16 · Status: design phase, no code</p>
+  <p class="preamble">
+    This is the canonical design document for Von Neumann Swarm. Chat memory is <em>not</em> the source of truth — this file is. Each session should read this doc before responding, update the relevant section, and append to the Decision Log. Section IDs (<code>#north-star</code>, <code>#decision-log</code>, etc.) are stable. Right-margin annotations are for review feedback — edit in source.
+  </p>
+</header>
+
+<nav class="toc">
+  <ol>
+    <li><a href="#north-star">1. North Star</a></li>
+    <li><a href="#session-shape">2. Session-Shape Contract</a></li>
+    <li><a href="#core-loop">3. Core Loop</a></li>
+    <li><a href="#systems">4. Systems</a></li>
+    <li><a href="#tech-spine">5. Tech Spine</a></li>
+    <li><a href="#decision-log">6. Decision Log</a></li>
+    <li><a href="#open-questions">7. Open Questions</a></li>
+    <li><a href="#risk-register">8. Risk Register</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<section id="north-star">
+  <div class="content">
+    <h2><span class="num">1</span>North Star</h2>
+    <p class="lede">What this game is. What it isn't. What ending we're designing toward.</p>
+
+    <h3>Pitch</h3>
+    <p>
+      <strong>Von Neumann Swarm</strong> is a web-based incremental/idle game about self-replicating probes spreading through a galaxy. The player starts with one probe on one asteroid; ends — eventually — with a swarm whose drift across generations produces something qualitatively new.
+    </p>
+
+    <h3>Spine</h3>
+    <p>
+      <strong>Prestige-evolution lineage.</strong> Each <em>lineage</em> is one prestige run. Resets accumulate <em>drift</em> in the swarm itself. Idle-dominant pacing; meta-progression across lineages. The persistent galaxy carries memory of previous lineages.
+    </p>
+    <p>Touchstones (decreasing influence): Increlution · Antimatter Dimensions · Kittens Game · Universal Paperclips · Factorio.</p>
+
+    <h3>v1 scope <span class="tag v1">v1</span></h3>
+    <p>
+      Two prestige layers active: <strong>Generation</strong> (within a single lineage) and <strong>Lineage</strong> (drift carries forward). Persistent galaxy across lineages. Capstone designed-but-not-built; v1 ships as an open-ended prestige game with the deepest lineage tier as the visible destination.
+    </p>
+
+    <h3>Capstone (aspirational) <span class="tag v2">v2 roadmap</span></h3>
+    <p>
+      Hybrid A+C: <strong>Swarm Transcendence</strong> + <strong>Cosmological Race</strong>. The cosmological clock advances across Eras; at heat death, a transcendent swarm-descendant chooses what to seed into the next universe. v1 architecture leaves explicit stubs (inactive cosmological clock field; NG+ scaffolding); v2 turns them on.
+    </p>
+
+    <h3>Anti-goals</h3>
+    <ul>
+      <li>Not Cookie Clicker shaped — single-loop with one prestige is explicitly out of scope.</li>
+      <li>Not a pure number-go-up game; drift and persistent galaxy carry identity, not just multipliers.</li>
+      <li>Not Factorio — no spatial belt-and-inserter optimization. The galaxy is a state graph, not a layout puzzle.</li>
+      <li>Not a narrative game — no scripted dialog; lore and consequence emerge from systems.</li>
+      <li>Not pay-to-progress; no monetization design in this spec.</li>
+    </ul>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note">
+      <span class="who">Decision</span>
+      Spine confirmed 2026-05-15 from three options (story-arc, sandbox+capstone, prestige-lineage).
+    </aside>
+    <aside class="margin-note">
+      <span class="who">Decision</span>
+      v1 scope confirmed 2026-05-16 over CC-style collapse and trimmed-mechanics fallback.
+    </aside>
+    <aside class="margin-note-blank">Review note slot — anti-goals worth adding?</aside>
+  </div>
+</section>
+
+<section id="session-shape">
+  <div class="content">
+    <h2><span class="num">2</span>Session-Shape Contract</h2>
+    <p class="lede">Explicit promises about what idle costs vs. what active play rewards. The most-broken contract in incremental games.</p>
+
+    <div class="stub">
+      <strong>TBD.</strong> Open question: where on the idle ↔ active spectrum does each layer sit? See <a href="#open-questions">Open Questions</a> Q2.
+    </div>
+
+    <h3>Provisional framing</h3>
+    <ul>
+      <li><strong>Generation layer:</strong> idle-dominant. Check-ins of a few minutes, several times a day, are the expected primary mode. Active sessions of 30-60 min are rewarded with meaningful decisions (build orders, expansion targets, reset timing) but not with raw throughput.</li>
+      <li><strong>Lineage layer:</strong> active-dominant at transition points. Choosing when to reset, what to carry, what to seed into next lineage are all real decisions. Between resets, idle behavior takes over.</li>
+      <li><strong>Offline catch-up:</strong> full credit, computed analytically (not by replaying ticks). Required, not optional, given idle-dominant pacing. See Tech Spine §5.</li>
+    </ul>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note-blank">Review note slot — is the "active at transition points" idea right, or should active matter throughout?</aside>
+  </div>
+</section>
+
+<section id="core-loop">
+  <div class="content">
+    <h2><span class="num">3</span>Core Loop</h2>
+    <p class="lede">Seconds-to-minutes loop, minutes-to-hours loop, and how lineage prestige folds into both.</p>
+
+    <h3>Diagram: prestige layers (v1 + v2 stubs)</h3>
+    <div class="mermaid">
+flowchart TB
+  subgraph V2["v2 roadmap — Era / Aeon"]
+    direction TB
+    era["Cosmological clock advances<br/>Galaxy ages: star formation slows,<br/>geometry shifts, physics tiers unlock"]
+    aeon["Aeon capstone: heat-death choice<br/>Transcendent successor seeds next universe"]
+    era --> aeon
+  end
+  subgraph V1L["v1 — Lineage layer"]
+    direction LR
+    drift["Drift accumulates<br/>(identity carryover)"]
+    galaxy["Persistent galaxy state<br/>(memory carryover)"]
+    reset["Reset trigger<br/>(TBD: forced / soft / chosen)"]
+  end
+  subgraph V1G["v1 — Generation layer"]
+    direction LR
+    mine["Mine"] --> build["Build probes"]
+    build --> expand["Expand reach"]
+    expand --> unlock["Unlock subsystems"]
+    unlock --> mine
+  end
+  V1G -->|"prestige"| reset
+  reset -->|"new lineage"| drift
+  drift -.->|"modifiers"| V1G
+  galaxy -.->|"state"| V1G
+  V1L -.->|"architecture stubs"| V2
+
+  classDef stub fill:#f0ede4,stroke:#999,stroke-dasharray:5 5,color:#666
+  class V2,era,aeon stub
+    </div>
+
+    <h3>Generation loop (seed sketch)</h3>
+    <pre><code>tick:
+  for each probe:
+    if mining     → accumulate resource
+    if building   → consume resource, produce probe
+    if travelling → advance toward target system
+    if dormant    → consume nothing
+  update unlock progress from cumulative milestones
+  update galaxy state (system depletion, swarm presence)</code></pre>
+
+    <div class="stub">
+      Subsystem catalog, resource list, unlock tree, probe roles — all TBD in <a href="#systems">§4 Systems</a>.
+    </div>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note">
+      <span class="who">Note</span>
+      Diagram intentionally shows v2 greyed out — onboarding risk is real (see Risk Register R1). Players see only the v1 boxes in-game.
+    </aside>
+    <aside class="margin-note-blank">Review note slot — does the seed-sketch capture what you'd expect?</aside>
+  </div>
+</section>
+
+<section id="systems">
+  <div class="content">
+    <h2><span class="num">4</span>Systems</h2>
+    <p class="lede">Each system gets its own sub-spec: state shape, inputs, outputs, dependencies, prestige carryover behavior.</p>
+
+    <div class="stub">
+      <strong>Not yet designed.</strong> Pending decisions:
+      <ul>
+        <li>Resource model (single resource vs. resource web; if web, how many primaries)</li>
+        <li>Probe roles (one role with config vs. specialized roles)</li>
+        <li>Subsystem unlock structure (tech tree shape — linear, branching, web)</li>
+        <li>Galaxy topology (abstract graph vs. structured map vs. procedural)</li>
+        <li>Drift model (random modifiers vs. directed evolution vs. trait tree)</li>
+        <li>Persistent galaxy state model (what carries between lineages mechanically)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note-blank">Review note slot — order to design these in?</aside>
+  </div>
+</section>
+
+<section id="tech-spine">
+  <div class="content">
+    <h2><span class="num">5</span>Tech Spine</h2>
+    <p class="lede">Stack, simulation/UI split, save format, performance budget.</p>
+
+    <div class="stub">
+      <strong>Stack: deferred</strong> until session-shape and UI complexity are pinned. Default recommendation pending the next design pass.
+    </div>
+
+    <h3>Working assumptions (challenge-ready)</h3>
+    <ul>
+      <li><strong>Language:</strong> TypeScript (non-negotiable for a project this size).</li>
+      <li><strong>Bundler:</strong> Vite. No build-system bikeshedding.</li>
+      <li><strong>UI layer:</strong> probably a thin reactivity layer (Lit, Solid, or Alpine). React/Svelte must <em>earn</em> their seat — the UI here is mostly numbers and graphs, not heavily componentised. Will revisit when we know what the screens look like.</li>
+      <li><strong>Simulation:</strong> headless deterministic tick simulation. UI is a view over the sim. Sim must run in a worker so the UI thread stays responsive.</li>
+      <li><strong>Save format:</strong> versioned JSON with explicit migrators per version bump. Galaxy state likely outgrows localStorage; assume IndexedDB.</li>
+      <li><strong>Offline catch-up:</strong> analytical integration of accumulation formulas, not per-tick simulation. <em>Hard requirement</em> — a multi-hour idle session that triggers a multi-second hang on resume is a game-killer.</li>
+      <li><strong>Architecture stubs for v2:</strong> save format reserves fields for cosmological clock and aeon-carryover bundle. Tick loop has empty hooks for Era transitions. This costs almost nothing now and saves a migration later.</li>
+    </ul>
+
+    <h3>Performance budget (provisional)</h3>
+    <table>
+      <thead>
+        <tr><th>Metric</th><th>Target</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Tick frequency</td><td>~10 Hz</td><td>UI updates at 30-60 Hz; sim ticks slower</td></tr>
+        <tr><td>Tick cost</td><td>&lt; 5 ms</td><td>Even at late-lineage scale</td></tr>
+        <tr><td>Save size</td><td>&lt; 5 MB</td><td>Galaxy state compressed; IndexedDB</td></tr>
+        <tr><td>Offline resume</td><td>&lt; 200 ms</td><td>Closed-form catch-up, not replay</td></tr>
+        <tr><td>Initial load</td><td>&lt; 1.5 s</td><td>Code-split; sim worker loads after first paint</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note">
+      <span class="who">Note</span>
+      Stack pushback owed — coming after session-shape decision lands.
+    </aside>
+    <aside class="margin-note-blank">Review note slot — anything in working assumptions you want to argue with now?</aside>
+  </div>
+</section>
+
+<section id="decision-log">
+  <div class="content">
+    <h2><span class="num">6</span>Decision Log</h2>
+    <p class="lede">Append-only. Every design call gets a row: date, decision, alternatives considered, why.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Decision</th>
+          <th>Alternatives</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="date">2026-05-15</td>
+          <td>Project goal: <strong>real publishable game</strong></td>
+          <td>Personal toy; portfolio demo</td>
+          <td class="why">User explicit choice. Sets scope budget at weeks-to-months and demands prestige loops + balanced progression.</td>
+        </tr>
+        <tr>
+          <td class="date">2026-05-15</td>
+          <td>Spine: <strong>Prestige-evolution lineage</strong></td>
+          <td>Phased story-arc (UP-shaped); open sandbox + capstone (Factorio + UP)</td>
+          <td class="why">Matches user's idle-dominant preference and Increlution/AD touchstones. Accepts that "real endgame" promise becomes a designed capstone bolted on a treadmill — solvable, but the central tension of this project.</td>
+        </tr>
+        <tr>
+          <td class="date">2026-05-15</td>
+          <td>Capstone (aspirational): <strong>Hybrid A+C</strong> — Swarm Transcendence + Cosmological Race</td>
+          <td>A alone (transcendence only); B (Map Completion); C alone (cosmological only)</td>
+          <td class="why">Strongest philosophical capstone in option set. Persistent-galaxy + drift + heat-death-choice gives three independent progression axes. User accepted scope risk explicitly.</td>
+        </tr>
+        <tr>
+          <td class="date">2026-05-16</td>
+          <td>v1 scope: <strong>Generation + Lineage only</strong>; Era + Aeon deferred to v2 roadmap</td>
+          <td>(b) Trim mechanics inside all layers; (c) Collapse to CC-shape</td>
+          <td class="why">Preserves what is distinctive (drift, persistent galaxy) while keeping shippable scope. v1 ships honestly as an open-ended prestige game; capstone is designed-but-unbuilt. Architecture leaves stubs so v2 is additive, not a rewrite.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note-blank">Review note slot</aside>
+  </div>
+</section>
+
+<section id="open-questions">
+  <div class="content">
+    <h2><span class="num">7</span>Open Questions</h2>
+    <p class="lede">Things we've deferred. When resolved, they move to Decision Log and the relevant section is updated.</p>
+
+    <ol>
+      <li id="q1"><strong>Capstone fully spec'd before v1 ships?</strong> Even though v2 builds it, the architecture must support it. We need to spec the Aeon-carryover bundle now so save format is right. <span class="tag open">open</span></li>
+      <li id="q2"><strong>Session-shape contract specifics:</strong> idle ↔ active ratio per layer; check-in cadence assumption; reward shape for active sessions. <span class="tag open">open</span></li>
+      <li id="q3"><strong>Universe topology:</strong> persistent galaxy across lineages is proposed but not confirmed. Alternatives: fresh galaxy each lineage; shared galaxy with "instance overlays" per lineage. <span class="tag open">open</span></li>
+      <li id="q4"><strong>Carryover model:</strong> what specifically carries across lineages (drift modifiers — random? chosen? earned?); what galactic state persists (ruins? infrastructure? exhausted systems?). <span class="tag open">open</span></li>
+      <li id="q5"><strong>Reset trigger:</strong> forced (swarm dies), soft-forced (curves flatten), player-chosen (AD-style), or phase-triggered (you reach "swarm singularity")? <span class="tag open">open</span></li>
+      <li id="q6"><strong>Resource model:</strong> single resource vs. resource web; if web, how many primaries; how do they combine. <span class="tag open">open</span></li>
+      <li id="q7"><strong>Galaxy topology:</strong> abstract graph of N systems vs. structured map vs. procedural; how many systems is the right number (10s, 100s, 1000s?). <span class="tag open">open</span></li>
+      <li id="q8"><strong>Drift model:</strong> random mutations, directed evolution (player chooses pressure), trait tree, or hybrid. <span class="tag open">open</span></li>
+      <li id="q9"><strong>Subsystem unlock structure:</strong> linear tech progression vs. branching tree vs. dependency web. <span class="tag open">open</span></li>
+      <li id="q10"><strong>Stack choice:</strong> deferred pending session-shape and UI complexity. <span class="tag open">open</span></li>
+      <li id="q11"><strong>Save format and migration strategy:</strong> JSON shape, versioning, what's reserved for v2. <span class="tag open">open</span></li>
+      <li id="q12"><strong>Tone:</strong> hard-sf, soft-sf, cosmic-horror, optimistic? Affects naming, copy, art direction. <span class="tag open">open</span></li>
+    </ol>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note-blank">Review note slot — priority order for next sessions?</aside>
+  </div>
+</section>
+
+<section id="risk-register">
+  <div class="content">
+    <h2><span class="num">8</span>Risk Register</h2>
+    <p class="lede">Known design and technical risks, with mitigation thinking.</p>
+
+    <table>
+      <thead>
+        <tr><th>#</th><th>Risk</th><th>Type</th><th>Mitigation</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>R1</td>
+          <td><strong>Layered-prestige onboarding.</strong> Even two layers (Generation + Lineage) is enough to lose players. AD-style "you don't see the layer until you've earned it" is well-trodden but easy to get wrong.</td>
+          <td><span class="tag risk">design</span></td>
+          <td class="why">Lineage layer should be invisible in the UI until first reset is unavoidable. Hide drift and persistent-galaxy mechanics behind the first prestige.</td>
+        </tr>
+        <tr>
+          <td>R2</td>
+          <td><strong>Capstone promise vs. v1 ship.</strong> Players hearing "Von Neumann Swarm has a designed ending" and getting v1's prestige-treadmill will feel cheated.</td>
+          <td><span class="tag risk">design</span></td>
+          <td class="why">Don't market the capstone for v1. v1 messaging: "open-ended prestige; designed capstone is a planned expansion." Be explicit in store copy.</td>
+        </tr>
+        <tr>
+          <td>R3</td>
+          <td><strong>Persistent-galaxy save format.</strong> If galaxy state grows unboundedly, saves grow unboundedly. IndexedDB has limits and compression has perf cost.</td>
+          <td><span class="tag risk">tech</span></td>
+          <td class="why">Cap on systems; LRU eviction for fully depleted/abandoned systems back to "lossy summary." Architecture must allow this from day one.</td>
+        </tr>
+        <tr>
+          <td>R4</td>
+          <td><strong>Drift as random-stat-shuffle.</strong> If drift modifiers feel like a slot machine rather than meaningful identity changes to your swarm, the central distinctive mechanic loses its weight.</td>
+          <td><span class="tag risk">design</span></td>
+          <td class="why">Drift must be readable and consequential. Player should be able to point at their swarm and say "this lineage is good at X, bad at Y, weird about Z." Trait categories rather than flat number bonuses.</td>
+        </tr>
+        <tr>
+          <td>R5</td>
+          <td><strong>Idle-pacing vs. designed-destination tension.</strong> Even at v1 scope, "reach deepest lineage tier" must feel like a real destination, not infinite grind dressed up.</td>
+          <td><span class="tag risk">design</span></td>
+          <td class="why">Lineage tier count must be finite and small enough to feel reachable (probably &lt; 20). Each tier should be qualitatively different, not just larger numbers.</td>
+        </tr>
+        <tr>
+          <td>R6</td>
+          <td><strong>Offline catch-up correctness.</strong> Analytical integration of compound systems is hard. A bug here either gives players too much (econ-breaking) or too little (rage-inducing).</td>
+          <td><span class="tag risk">tech</span></td>
+          <td class="why">Every accumulator system must come with both a tick rule and a closed-form for arbitrary Δt, validated by property test (running closed-form vs. simulated ticks should agree to a small tolerance).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="margin">
+    <aside class="margin-note-blank">Review note slot — risks I've missed?</aside>
+  </div>
+</section>
+
+</main>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'base',
+    themeVariables: {
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
+      primaryColor: '#fbf9f4',
+      primaryTextColor: '#1c1e22',
+      primaryBorderColor: '#4a4d54',
+      lineColor: '#4a4d54',
+      secondaryColor: '#f3efe6',
+      tertiaryColor: '#fffaee'
+    }
+  });
+</script>
+
+</body>
+</html>
