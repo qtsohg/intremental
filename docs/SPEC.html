@@ -257,7 +257,7 @@
 
 <header class="doc-header">
   <h1>Von Neumann Swarm — SPEC</h1>
-  <p class="meta">Living spec · v0.1 scaffold · Last updated 2026-05-16 · Status: design phase, no code</p>
+  <p class="meta">Living spec · v0.6 · Last updated 2026-05-17 · Status: design phase, no code</p>
   <p class="preamble">
     This is the canonical design document for Von Neumann Swarm. Chat memory is <em>not</em> the source of truth — this file is. Each session should read this doc before responding, update the relevant section, and append to the Decision Log. Section IDs (<code>#north-star</code>, <code>#decision-log</code>, etc.) are stable. Right-margin annotations are for review feedback — edit in source.
   </p>
@@ -290,13 +290,14 @@
 
     <h3>Spine</h3>
     <p>
-      <strong>Prestige-evolution lineage.</strong> Each <em>lineage</em> is one prestige run. Resets accumulate <em>drift</em> in the swarm itself. Idle-dominant pacing; meta-progression across lineages. The persistent galaxy carries memory of previous lineages.
+      <strong>Prestige-evolution lineage.</strong> Each <em>lineage</em> is one prestige run. During a lineage, the swarm earns <strong>Adaptations</strong> (transient traits from in-game events). At reset, the player chooses 1-2 to become <strong>Imprints</strong> — permanent traits that accumulate across all future lineages, giving the swarm a cumulative always-stronger arc. Idle-dominant pacing; meta-progression across lineages. The persistent galaxy carries memory of previous lineages.
     </p>
+    <p class="lede" style="margin-top:-6px"><em>Terminology (proposed):</em> Adaptations (earned, transient), Imprints (chosen, permanent), Drift (the overall identity-change concept).</p>
     <p>Touchstones (decreasing influence): Increlution · Antimatter Dimensions · Kittens Game · Universal Paperclips · Factorio.</p>
 
     <h3>v1 scope <span class="tag v1">v1</span></h3>
     <p>
-      Two prestige layers active: <strong>Generation</strong> (within a single lineage) and <strong>Lineage</strong> (drift carries forward). Persistent galaxy across lineages. Capstone designed-but-not-built; v1 ships as an open-ended prestige game with the deepest lineage tier as the visible destination.
+      Two prestige layers active: <strong>Generation</strong> (within a single lineage) and <strong>Lineage</strong> (drift carries forward). Persistent galaxy across lineages, with site-scale <strong>Lineage Remnants</strong> from previous lineages discoverable on the map and interactable (reclaim / salvage / negotiate / fight). Capstone designed-but-not-built; v1 ships as an open-ended prestige game with the deepest lineage tier as the visible destination.
     </p>
 
     <h3>Capstone (aspirational) <span class="tag v2">v2 roadmap</span></h3>
@@ -311,6 +312,7 @@
       <li>Not Factorio — no spatial belt-and-inserter optimization. The galaxy is a state graph, not a layout puzzle.</li>
       <li>Not a narrative game — no scripted dialog; lore and consequence emerge from systems.</li>
       <li>Not pay-to-progress; no monetization design in this spec.</li>
+      <li>Not infinite-stat-creep. Imprint accumulation must be absorbed by content tier-up + opportunity-cost in Imprint design (mutually exclusive families). The game stays interesting at lineage 20.</li>
     </ul>
   </div>
 
@@ -415,15 +417,36 @@ flowchart TB
     <h2><span class="num">4</span>Systems</h2>
     <p class="lede">Each system gets its own sub-spec: state shape, inputs, outputs, dependencies, prestige carryover behavior.</p>
 
+    <h3>Confirmed systems (sub-specs TBD)</h3>
+    <ul>
+      <li>
+        <strong>Lineage Remnants</strong> <span class="tag v1">v1</span> —
+        site-scale legacy from previous lineages discoverable on the map. Interaction modes: reclaim / salvage / negotiate / fight. Encounter outcomes can seed Adaptations for current lineage. Reclaimed remnants inherit current Imprint stack (global scope). See Decision Log 2026-05-17. Sub-questions in Open Questions Q3a–Q3e.
+      </li>
+      <li>
+        <strong>Adaptations &amp; Imprints (Drift System)</strong> <span class="tag v1">v1</span> —
+        Adaptations are transient traits earned in-lineage from events (including Remnant encounters); at reset, the player promotes 1-2 to Imprints (permanent across all future lineages). Apply globally including to reclaimed Remnant assets. Mutually-exclusive Imprint families provide opportunity cost. See Decision Log 2026-05-17. Sub-questions in Open Questions Q4a–Q4d.
+      </li>
+      <li>
+        <strong>Galaxy Topology</strong> <span class="tag v1">v1</span> —
+        ~250 systems, seed-driven procedural generation with hand-authored anchors (Core, anomaly zones, edge rim). Systems are positioned on a 2D galactic-disk plane (EVE-style projection) with a graph of jump connections overlaid — travel is constrained to connected neighbours, not free movement. Galactic hierarchy: Rim → Mid → Core, with different resource density, danger, and tier-gating per layer. Lineage 1 always starts at the Rim. Subsequent lineages can Seed deeper into explored regions. Travel time per jump is the primary idle-pacing lever. See Decision Log 2026-05-17. Sub-questions in Open Questions Q7a–Q7e.
+      </li>
+      <li>
+        <strong>Prestige UX (Reset Bundle)</strong> <span class="tag v1">v1</span> —
+        At reset the player makes three decisions: which 1-2 Adaptations to promote to Imprints; where in the galaxy to Seed the new lineage (depth-from-Rim is a real choice); what to name the new lineage. Named lineages persist in the world's history (Remnant attribution, decision log within the save). See Decision Log 2026-05-17.
+      </li>
+    </ul>
+
+    <h3>Not yet designed</h3>
     <div class="stub">
-      <strong>Not yet designed.</strong> Pending decisions:
+      Pending decisions:
       <ul>
         <li>Resource model (single resource vs. resource web; if web, how many primaries)</li>
         <li>Probe roles (one role with config vs. specialized roles)</li>
         <li>Subsystem unlock structure (tech tree shape — linear, branching, web)</li>
         <li>Galaxy topology (abstract graph vs. structured map vs. procedural)</li>
         <li>Drift model (random modifiers vs. directed evolution vs. trait tree)</li>
-        <li>Persistent galaxy state model (what carries between lineages mechanically)</li>
+        <li>Persistent galaxy state model — partially answered by Lineage Remnants; rest TBD</li>
       </ul>
     </div>
   </div>
@@ -516,6 +539,36 @@ flowchart TB
           <td>(b) Trim mechanics inside all layers; (c) Collapse to CC-shape</td>
           <td class="why">Preserves what is distinctive (drift, persistent galaxy) while keeping shippable scope. v1 ships honestly as an open-ended prestige game; capstone is designed-but-unbuilt. Architecture leaves stubs so v2 is additive, not a rewrite.</td>
         </tr>
+        <tr>
+          <td class="date">2026-05-17</td>
+          <td>Q3 resolution: persistent galaxy with <strong>Lineage Remnants</strong></td>
+          <td>Pure serial (galaxy keeps marks, no remnants); full parallel (autonomous ex-lineages); serial-with-stubs</td>
+          <td class="why">Site-scale remnants from past lineages are discoverable on the map and interactable (reclaim / salvage / negotiate / fight). Gets ~80% of the parallel-lineage thematic payoff at ~20% complexity, and makes the persistent-galaxy decision mechanically load-bearing rather than just lore. Creates a third drift path (encounter-driven). User-originated design.</td>
+        </tr>
+        <tr>
+          <td class="date">2026-05-17</td>
+          <td>Q4 (drift): <strong>Hybrid earned + chosen, with permanent accumulation</strong></td>
+          <td>Random at reset; chosen-at-reset only; earned-only</td>
+          <td class="why">Adaptations earned in-lineage; at reset, 1-2 are promoted to Imprints (permanent across all future lineages). Gives both emergent identity (the lineage was <em>shaped</em> by what it survived) and player agency (the imprint moment is authorship). Cumulative-stronger arc is the spine every prestige game needs. Imprints apply globally, including to reclaimed Remnants. Must be balanced by content tier-up + mutually-exclusive Imprint families (opportunity cost). v2 deferred: ability to swap/remove Imprints.</td>
+        </tr>
+        <tr>
+          <td class="date">2026-05-17</td>
+          <td>Q5 (reset trigger): <strong>Hard floor + soft pressure</strong></td>
+          <td>Pure player-chosen; soft pressure only; hard floor only; phase-triggered</td>
+          <td class="why">Reset locked until a minimum condition is met (specifics in Q5a) — prevents cheese resets and guarantees a minimum lineage shape. Past the floor, Imprint pool quality / Adaptation diversity scales softly with lineage age so players self-pace. Matches the player-chosen agency the Adaptations/Imprints system implies.</td>
+        </tr>
+        <tr>
+          <td class="date">2026-05-17</td>
+          <td>Q5b (prestige UX): <strong>Imprint promotion + Seeding choice + Lineage Name</strong></td>
+          <td>Imprint only; +Seeding only; +Seeding +Name +Doctrine</td>
+          <td class="why">Three decision surfaces at the prestige moment — which Imprints to promote, where in the galaxy to seed the new lineage (re-enter near developed cluster vs. wild frontier), and what to name this lineage. Mitigates R8 without adding a new ongoing mechanical system. Doctrine deferred (would compete with Imprints for identity-design space; revisit in v2 if needed). Seeding makes Q7 (Galaxy topology) load-bearing — needs concrete galaxy structure to point at.</td>
+        </tr>
+        <tr>
+          <td class="date">2026-05-17</td>
+          <td>Q7 (galaxy topology): <strong>Standard ~250 systems, seed-driven procedural, EVE-style 2D graph with jump connections, Rim→Mid→Core hierarchy, lineage 1 starts at Rim</strong></td>
+          <td>Tight (~50); Vast (~2000); Standard with shared seed default; free 2D movement (no connection graph)</td>
+          <td class="why">Seed-driven keeps shared-seed-as-community-option available later for free. Connection-graph travel (EVE-style) creates strategic chokepoints, makes Remnants cluster coherently along corridors, and bounds the universe state cleanly. Rim→Mid→Core hierarchy gives Seeding a depth-axis choice and tier-gates resources. Outward-to-inward progression is the canonical arc and gives the journey a directionality. Travel time per jump becomes the primary idle-pacing lever.</td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -533,12 +586,32 @@ flowchart TB
     <ol>
       <li id="q1"><strong>Capstone fully spec'd before v1 ships?</strong> Even though v2 builds it, the architecture must support it. We need to spec the Aeon-carryover bundle now so save format is right. <span class="tag open">open</span></li>
       <li id="q2"><strong>Session-shape contract specifics:</strong> idle ↔ active ratio per layer; check-in cadence assumption; reward shape for active sessions. <span class="tag open">open</span></li>
-      <li id="q3"><strong>Universe topology:</strong> persistent galaxy across lineages is proposed but not confirmed. Alternatives: fresh galaxy each lineage; shared galaxy with "instance overlays" per lineage. <span class="tag open">open</span></li>
-      <li id="q4"><strong>Carryover model:</strong> what specifically carries across lineages (drift modifiers — random? chosen? earned?); what galactic state persists (ruins? infrastructure? exhausted systems?). <span class="tag open">open</span></li>
-      <li id="q5"><strong>Reset trigger:</strong> forced (swarm dies), soft-forced (curves flatten), player-chosen (AD-style), or phase-triggered (you reach "swarm singularity")? <span class="tag open">open</span></li>
+      <li id="q3"><strong>Universe topology:</strong> <s>persistent galaxy across lineages</s> — <strong>resolved 2026-05-17</strong>: persistent galaxy + Lineage Remnants. See Decision Log.</li>
+      <li id="q3a"><strong>Remnant taxonomy:</strong> what kinds of remnants exist (active infrastructure, dormant clusters, lone artifacts, jackpot sites) and their relative frequencies. <span class="tag open">open</span></li>
+      <li id="q3b"><strong>Remnant behavior model:</strong> static (only change on interaction), reactive (state changes when player approaches), or slowly evolving (drift continues in cheap ways). <span class="tag open">open</span></li>
+      <li id="q3c"><strong>Remnant interaction outcomes:</strong> tradeoff design for reclaim / salvage / negotiate / fight. <span class="tag open">open</span></li>
+      <li id="q3d"><strong>Remnant encounter variance and pacing:</strong> frequency, seeding rules, "old well-travelled systems carry more / weirder remnants." <span class="tag open">open</span></li>
+      <li id="q3e"><strong>Lineage memory:</strong> do we track which-lineage-left-what (specific drift profile, era) or abstract it to "a previous lineage." <span class="tag open">open</span></li>
+      <li id="q4"><strong>Carryover model:</strong> <s>drift mechanism</s> — <strong>resolved 2026-05-17</strong>: Adaptations + Imprints with permanent accumulation. Other galactic-state carryover partially answered by Lineage Remnants. See Decision Log.</li>
+      <li id="q4a"><strong>Imprint family design:</strong> which traits are mutually exclusive (opportunity cost), which stack freely, how many families exist, how the pool grows over time. <span class="tag open">open</span></li>
+      <li id="q4b"><strong>Adaptation event catalog:</strong> what in-game events can earn an Adaptation; how many distinct Adaptations exist; how earning frequency scales with lineage length. <span class="tag open">open</span></li>
+      <li id="q4c"><strong>Terminology lock:</strong> "Adaptations" / "Imprints" / "Drift" are working names. Confirm or rename before they propagate through copy. <span class="tag open">open</span></li>
+      <li id="q4d"><strong>Imprint swap/remove system:</strong> deferred to v2. As stack accumulates, players need curation. Design later. <span class="tag v2">v2</span></li>
+      <li id="q4e"><strong>Tech carryover:</strong> separate from Adaptations/Imprints — does tech progression persist across lineages, or full reset, or partial? <span class="tag open">open</span></li>
+      <li id="q5"><strong>Reset trigger:</strong> <s>forced / soft-forced / player-chosen / phase-triggered</s> — <strong>resolved 2026-05-17</strong>: hard floor + soft pressure. See Decision Log.</li>
+      <li id="q5a"><strong>Hard floor specifics:</strong> what is the minimum condition (N Adaptations? Specific milestone? Production threshold?). Balance work, not architecture. <span class="tag open">open</span></li>
+      <li id="q5b"><strong>Prestige UX shape:</strong> the reset moment must carry more weight than "pick 1-2 Imprints from a list" (R8). What other choices bundle into the prestige moment — Seeding (where in the galaxy the new lineage starts), Lineage Name, Doctrine (mechanical bias for the new lineage), other? <span class="tag open">open</span></li>
+      <li id="q5c"><strong>Soft-pressure curve shape:</strong> does Imprint pool grow in size, quality, or both with lineage age; does Adaptation earn rate decay; what's a "good" lineage length target. Balance work. <span class="tag open">open</span></li>
+      <li id="q5b-resolved"><strong>Prestige UX shape:</strong> <strong>resolved 2026-05-17</strong> — Imprint promotion + Seeding choice + Lineage Name. See Decision Log.</li>
+      <li id="q5d"><strong>Lineage Doctrine (deferred):</strong> high-level strategic intent that biases new lineage mechanics. Competes with Imprints for identity-design space; revisit in v2 if Imprints alone don't deliver enough lineage character. <span class="tag v2">v2</span></li>
       <li id="q6"><strong>Resource model:</strong> single resource vs. resource web; if web, how many primaries; how do they combine. <span class="tag open">open</span></li>
-      <li id="q7"><strong>Galaxy topology:</strong> abstract graph of N systems vs. structured map vs. procedural; how many systems is the right number (10s, 100s, 1000s?). <span class="tag open">open</span></li>
-      <li id="q8"><strong>Drift model:</strong> random mutations, directed evolution (player chooses pressure), trait tree, or hybrid. <span class="tag open">open</span></li>
+      <li id="q7"><strong>Galaxy topology:</strong> <s>scale + structure + generation</s> — <strong>resolved 2026-05-17</strong>: Standard, seed-driven, EVE-style graph, Rim→Mid→Core. See Decision Log.</li>
+      <li id="q7a"><strong>Hierarchy layer count and gradient:</strong> three layers (Rim/Mid/Core) or finer? How do resource quality, danger, and tier-gating actually scale across layers? <span class="tag open">open</span></li>
+      <li id="q7b"><strong>Connection-graph parameters:</strong> average jump connections per system; whether high-degree hubs exist; whether rare wormhole-class connections jump across regions; how the generator guarantees connectivity. <span class="tag open">open</span></li>
+      <li id="q7c"><strong>Travel time tuning:</strong> per-jump duration as a function of layer / distance / probe tech. The primary idle-pacing lever. Balance work. <span class="tag open">open</span></li>
+      <li id="q7d"><strong>Hand-authored anchors:</strong> what specific named landmarks exist (the Core, anomaly zones, edge rim, etc.); their function; visibility from start. <span class="tag open">open</span></li>
+      <li id="q7e"><strong>Map UI:</strong> EVE-style projection in 2D — interaction model (zoom, filter by Remnants/anomalies/probe presence, route planning). Real UX design, not just visual reference. <span class="tag open">open</span></li>
+      <li id="q8"><strong>Drift model:</strong> <s>random / directed / trait tree / hybrid</s> — <strong>superseded by Q4 resolution</strong> (Adaptations + Imprints). Closed 2026-05-17.</li>
       <li id="q9"><strong>Subsystem unlock structure:</strong> linear tech progression vs. branching tree vs. dependency web. <span class="tag open">open</span></li>
       <li id="q10"><strong>Stack choice:</strong> deferred pending session-shape and UI complexity. <span class="tag open">open</span></li>
       <li id="q11"><strong>Save format and migration strategy:</strong> JSON shape, versioning, what's reserved for v2. <span class="tag open">open</span></li>
@@ -596,6 +669,30 @@ flowchart TB
           <td><strong>Offline catch-up correctness.</strong> Analytical integration of compound systems is hard. A bug here either gives players too much (econ-breaking) or too little (rage-inducing).</td>
           <td><span class="tag risk">tech</span></td>
           <td class="why">Every accumulator system must come with both a tick rule and a closed-form for arbitrary Δt, validated by property test (running closed-form vs. simulated ticks should agree to a small tolerance).</td>
+        </tr>
+        <tr>
+          <td>R7</td>
+          <td><strong>Imprint stack going stale.</strong> Permanent accumulation without curation leads to "I have all the good ones; choices are now trivial." Especially acute around lineages 15-25 if the Imprint pool isn't expanding faster than the player consumes it.</td>
+          <td><span class="tag risk">design</span></td>
+          <td class="why">Mutually-exclusive Imprint families enforce identity choices early. Pool growth tied to galactic exploration progress (new Adaptations unlock as you reach new galactic regions / Remnant types). v2 swap system is the long-term curation tool but v1 must stand on its own.</td>
+        </tr>
+        <tr>
+          <td>R8</td>
+          <td><strong>Imprint promotion as the only meaningful reset choice.</strong> If the prestige moment reduces to "pick 1-2 from a list", we've made one of the most important moments in the game a flat menu. UP and AD both give prestige moments more weight than that.</td>
+          <td><span class="tag risk">design</span></td>
+          <td class="why">Mitigated by Q5b resolution: prestige bundles Imprint promotion + Seeding choice + Lineage Name. Three decision surfaces at the reset moment instead of one.</td>
+        </tr>
+        <tr>
+          <td>R9</td>
+          <td><strong>Travel-time tuning is THE balance problem.</strong> Too short and the game has no idle pacing — players micromanage every probe. Too long and the game is unplayable without 8h+ check-ins. This is the single highest-leverage balance variable in the design.</td>
+          <td><span class="tag risk">design</span></td>
+          <td class="why">Travel time must scale with probe tech tier (early game = slow, late game = fast) AND with galactic layer (Rim slow but safe, Core fast but dangerous). Build telemetry from day one: time-to-arrival distributions, idle-window distributions, active-session durations. Tune against real play data, not theory.</td>
+        </tr>
+        <tr>
+          <td>R10</td>
+          <td><strong>Connection-graph generator pathologies.</strong> A procedural graph generator that produces disconnected components, dead-end peninsulas, or impassable choke-zones will create unplayable saves. Players will discover edge cases we don't.</td>
+          <td><span class="tag risk">tech</span></td>
+          <td class="why">Generator must guarantee: full connectivity (no orphan components); minimum degree 2 for most systems (no dead-ends except deliberate ones); a viable Rim→Core path even after damage / Remnant blockage. Property test the generator across many seeds before shipping.</td>
         </tr>
       </tbody>
     </table>
